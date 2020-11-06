@@ -63,14 +63,15 @@ var pump = function () {
   if (Array.isArray(streams[0])) streams = streams[0]
   if (streams.length < 2) throw new Error('pump requires two streams per minimum')
 
-  var error
+  var error, destroyNum = 0
   var destroys = streams.map(function (stream, i) {
     var reading = i < streams.length - 1
     var writing = i > 0
     return destroyer(stream, reading, writing, function (err) {
+      destroyNum += 1
       if (!error) error = err
       if (err) destroys.forEach(call)
-      if (reading) return
+      if (destroyNum < streams.length) return
       destroys.forEach(call)
       callback(error)
     })
